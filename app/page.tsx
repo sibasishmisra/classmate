@@ -6,6 +6,7 @@ import TopicInput from '@/components/TopicInput';
 import ExplanationDisplay from '@/components/ExplanationDisplay';
 import FriendlyErrorDisplay from '@/components/FriendlyErrorDisplay';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ExampleQuestionsFooter from '@/components/ExampleQuestionsFooter';
 import { useSession } from '@/contexts/SessionContext';
 import { soundManager, SOUND_IDS } from '@/lib/sound-manager';
 import type { TopicEntry } from '@/types';
@@ -28,6 +29,7 @@ export default function Home() {
   } = useSession();
 
   const [showExplanation, setShowExplanation] = useState(false);
+  const [topicInput, setTopicInput] = useState('');
 
   const handleTopicSubmit = async (topic: string) => {
     await submitTopic(topic, FIXED_LEVEL);
@@ -38,6 +40,7 @@ export default function Home() {
 
   const handleNewTopic = () => {
     setShowExplanation(false);
+    setTopicInput('');
     // Play page turn sound when going back to topic input
     soundManager.play(SOUND_IDS.PAGE_TURN);
   };
@@ -48,19 +51,52 @@ export default function Home() {
     console.log('Selected topic from history:', topic);
   };
 
+  const handleExampleQuestionClick = (question: string) => {
+    setTopicInput(question);
+    setShowExplanation(false);
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Structured data for SEO
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'ClassMate.info - Explain Like I\'m in 5th Grade',
+    description: 'Get any topic explained in simple, easy-to-understand language at 5th grade level. AI-powered educational tool.',
+    url: 'https://www.classmate.info',
+    applicationCategory: 'EducationalApplication',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD'
+    },
+    featureList: [
+      'Simple explanations at 5th grade level',
+      'AI-powered instant answers',
+      'Follow-up questions',
+      'Free unlimited use',
+      'No signup required'
+    ]
+  };
+
   return (
-    <main className="min-h-screen bg-paper-white" role="main">
+    <>
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      
+      <main className="min-h-screen bg-paper-white" role="main">
       {/* Header */}
-      <header className="bg-chalkboard-black text-chalk-white py-4 sm:py-6 px-3 sm:px-4 shadow-lg sticky top-0 z-50" role="banner">
+      <header className="bg-chalkboard-black text-chalk-white py-4 sm:py-5 px-3 sm:px-4 shadow-lg sticky top-0 z-50" role="banner">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between gap-2 sm:gap-4">
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-ui text-center md:text-left">
-                ClassMate.info
-              </h1>
-              <p className="text-center md:text-left text-chalk-white mt-1 sm:mt-2 font-body text-xs sm:text-sm md:text-base opacity-90">
+              <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold font-ui text-center md:text-left text-chalk-white">
                 Explain it like I'm in 5th grade 🎓
-              </p>
+              </h1>
             </div>
             <Link
               href="/faq"
@@ -68,8 +104,7 @@ export default function Home() {
               aria-label="View help and FAQ"
             >
               <span aria-hidden="true" className="text-base sm:text-lg">❓</span>
-              <span className="hidden sm:inline">Help & FAQ</span>
-              <span className="sm:hidden">Help</span>
+              <span className="hidden sm:inline">Help</span>
             </Link>
           </div>
         </div>
@@ -82,18 +117,45 @@ export default function Home() {
             {/* Topic Input - Always visible when not showing explanation */}
             {!showExplanation && (
               <section className="mb-6 sm:mb-8" aria-labelledby="topic-input-heading">
+                {/* SEO Content */}
                 <div className="text-center mb-6 sm:mb-8 px-2">
                   <h2 id="topic-input-heading" className="text-2xl sm:text-3xl md:text-4xl font-bold text-ink-black mb-3 sm:mb-4 font-ui">
                     What would you like to learn?
                   </h2>
-                  <p className="text-sm sm:text-base md:text-lg text-chalk-gray font-body max-w-2xl mx-auto">
+                  <p className="text-sm sm:text-base md:text-lg text-chalk-gray font-body max-w-2xl mx-auto mb-4">
                     Ask me anything! I'll explain it in a way that's easy to understand, 
                     just like you're in 5th grade. 📚
                   </p>
+                  
+                  {/* SEO-rich description */}
+                  <div className="max-w-3xl mx-auto text-left bg-white border border-ruled-line rounded-lg p-4 sm:p-6 mb-6">
+                    <h3 className="text-base sm:text-lg font-semibold text-ink-black mb-2 font-ui">
+                      How it works:
+                    </h3>
+                    <ul className="text-xs sm:text-sm text-chalk-gray space-y-2 font-body">
+                      <li className="flex items-start gap-2">
+                        <span className="text-accent-blue flex-shrink-0">✓</span>
+                        <span><strong>Type any question</strong> - from science to history, math to nature</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-accent-blue flex-shrink-0">✓</span>
+                        <span><strong>Get instant answers</strong> - explained in simple, easy-to-understand language</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-accent-blue flex-shrink-0">✓</span>
+                        <span><strong>Learn more</strong> - with follow-up questions and deeper explanations</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-accent-blue flex-shrink-0">✓</span>
+                        <span><strong>100% free</strong> - no signup required, unlimited questions</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
                 <TopicInput
                   onSubmit={handleTopicSubmit}
                   isLoading={isLoading}
+                  initialValue={topicInput}
                 />
               </section>
             )}
@@ -176,5 +238,9 @@ export default function Home() {
         </div>
       </div>
     </main>
-  );
+
+    {/* Footer with Example Questions */}
+    <ExampleQuestionsFooter onQuestionClick={handleExampleQuestionClick} />
+  </>
+);
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import NotebookTextarea from './NotebookTextarea';
 import ChalkDustButton from './ChalkDustButton';
 import { validateTopicInput } from '@/lib/validation';
@@ -9,15 +9,24 @@ interface TopicInputProps {
   onSubmit: (topic: string) => void;
   isLoading: boolean;
   maxLength?: number;
+  initialValue?: string;
 }
 
 export default function TopicInput({
   onSubmit,
   isLoading,
-  maxLength = 500
+  maxLength = 500,
+  initialValue = ''
 }: TopicInputProps) {
-  const [topic, setTopic] = useState('');
+  const [topic, setTopic] = useState(initialValue);
   const [error, setError] = useState<string | null>(null);
+
+  // Update topic when initialValue changes
+  useEffect(() => {
+    if (initialValue) {
+      setTopic(initialValue);
+    }
+  }, [initialValue]);
 
   const isValid = validateTopicInput(topic);
 
