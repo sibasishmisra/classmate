@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       message: 'Test log created',
       totalLogs: logs.length,
       latestLog: logs[0],
-      storageBackend: process.env.UPSTASH_REDIS_REST_URL ? 'redis' : 'file',
+      storageBackend: process.env.DATABASE_URL ? 'neon-postgres' : 'file',
     });
   } catch (error: any) {
     console.error('[TEST] Error:', error);
