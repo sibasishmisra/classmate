@@ -19,6 +19,9 @@ export default function TypewriterText({
   const [isComplete, setIsComplete] = useState(false);
   const [isSkipped, setIsSkipped] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  // Keep latest onComplete in a ref so the effect doesn't re-run when it changes
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   // Check for reduced motion preference
   const prefersReducedMotion = typeof window !== 'undefined' 
@@ -35,9 +38,7 @@ export default function TypewriterText({
     if (prefersReducedMotion) {
       setDisplayedText(text);
       setIsComplete(true);
-      if (onComplete) {
-        onComplete();
-      }
+      onCompleteRef.current?.();
       return;
     }
 
@@ -50,23 +51,19 @@ export default function TypewriterText({
       } else {
         clearInterval(intervalId);
         setIsComplete(true);
-        if (onComplete) {
-          onComplete();
-        }
+        onCompleteRef.current?.();
       }
     }, speed);
 
     return () => clearInterval(intervalId);
-  }, [text, speed, onComplete, prefersReducedMotion]);
+  }, [text, speed, prefersReducedMotion]); // onComplete intentionally excluded — using ref
 
   const handleSkip = () => {
     if (!isComplete && !isSkipped) {
       setDisplayedText(text);
       setIsComplete(true);
       setIsSkipped(true);
-      if (onComplete) {
-        onComplete();
-      }
+      onCompleteRef.current?.();
     }
   };
 
