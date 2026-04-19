@@ -51,7 +51,7 @@ export default function NotebookTextarea({
   const isNearLimit = characterCount > maxLength * 0.9;
 
   return (
-    <div className="notebook-textarea-wrapper w-full">
+    <div className="notebook-textarea-wrapper w-full px-2 sm:px-0">
       <div 
         className={`notebook-paper relative rounded-lg transition-all duration-200 ${
           isFocused ? 'shadow-paper' : ''
@@ -66,12 +66,12 @@ export default function NotebookTextarea({
           onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full min-h-[160px] bg-transparent border-none outline-none resize-none font-body text-ink-black text-base leading-8 placeholder:text-chalk-gray placeholder:italic placeholder:font-body"
+          className="w-full min-h-[120px] sm:min-h-[160px] bg-transparent border-none outline-none resize-none font-body text-ink-black text-base sm:text-lg leading-7 sm:leading-8 placeholder:text-chalk-gray placeholder:italic placeholder:font-body"
           style={{
-            paddingTop: '1.5rem',
-            paddingBottom: '1.5rem',
-            paddingRight: '1.5rem',
-            lineHeight: '32px', // Match ruled line spacing
+            paddingTop: '1rem',
+            paddingBottom: '2.5rem',
+            paddingRight: '1rem',
+            lineHeight: '28px', // Mobile-optimized line height
           }}
           aria-label="Enter your topic. Press Enter to submit, Shift+Enter for new line."
           aria-describedby="character-counter"
@@ -80,7 +80,7 @@ export default function NotebookTextarea({
         {/* Character counter in bottom-right corner */}
         <div 
           id="character-counter"
-          className={`absolute bottom-4 right-4 text-sm font-ui transition-colors duration-200 ${
+          className={`absolute bottom-2 sm:bottom-3 right-3 sm:right-4 text-xs sm:text-sm font-ui transition-colors duration-200 ${
             isNearLimit ? 'text-warning-yellow font-semibold' : 'text-chalk-gray'
           }`}
           aria-live="polite"

@@ -79,19 +79,40 @@ body {
     url('/textures/paper-texture.svg'),
     repeating-linear-gradient(
       transparent,
-      transparent 31px,
-      var(--ruled-line) 31px,
-      var(--ruled-line) 32px
+      transparent 27px,
+      var(--ruled-line) 27px,
+      var(--ruled-line) 28px
     ),
     linear-gradient(
       90deg,
       var(--margin-red) 0px,
       var(--margin-red) 2px,
       transparent 2px,
-      transparent 60px
+      transparent 50px
     );
   background-blend-mode: multiply, normal, normal;
-  padding-left: 70px;
+  padding-left: 55px;
+}
+
+@media (min-width: 640px) {
+  .notebook-paper {
+    background-image: 
+      url('/textures/paper-texture.svg'),
+      repeating-linear-gradient(
+        transparent,
+        transparent 31px,
+        var(--ruled-line) 31px,
+        var(--ruled-line) 32px
+      ),
+      linear-gradient(
+        90deg,
+        var(--margin-red) 0px,
+        var(--margin-red) 2px,
+        transparent 2px,
+        transparent 60px
+      );
+    padding-left: 70px;
+  }
 }
 
 .chalk-text {
@@ -496,11 +517,6 @@ a:focus-visible {
 
 /* Responsive Adjustments */
 @media (max-width: 767px) {
-  .notebook-paper {
-    padding-left: 40px;
-    background-size: auto, auto, 40px auto;
-  }
-  
   .level-card {
     padding: 0.875rem;
   }
@@ -519,19 +535,27 @@ a:focus-visible {
     font-size: 16px; /* Prevents iOS zoom on input focus */
   }
   
+  textarea {
+    font-size: 16px !important; /* Prevents iOS zoom on focus */
+  }
+  
   /* Reduce animations on mobile for performance */
   .chalk-dust {
     display: none;
+  }
+  
+  /* Mobile-optimized input box */
+  .notebook-textarea-wrapper {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .notebook-paper {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
 }
 
 /* Extra small devices (phones in portrait) */
 @media (max-width: 374px) {
-  .notebook-paper {
-    padding-left: 30px;
-    background-size: auto, auto, 30px auto;
-  }
-  
   .level-card {
     padding: 0.75rem;
   }
@@ -543,13 +567,15 @@ a:focus-visible {
   h2 {
     font-size: 1.125rem !important;
   }
+  
+  .notebook-paper {
+    padding-left: 45px;
+  }
 }
 
 /* Tablet adjustments */
 @media (min-width: 768px) and (max-width: 1023px) {
-  .notebook-paper {
-    padding-left: 60px;
-  }
+  /* Tablet styles already handled by responsive breakpoints */
 }
 
 /* Landscape mobile adjustments */

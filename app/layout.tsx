@@ -26,6 +26,15 @@ export const metadata: Metadata = {
     'understand topics',
   ],
   authors: [{ name: 'ClassMate.info' }],
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: [
+      { url: '/apple-icon.svg', type: 'image/svg+xml' },
+    ],
+  },
   openGraph: {
     title: 'Explain Like I\'m in 5th Grade - Simple AI Explanations',
     description: 'Get any topic explained in simple, easy-to-understand language. AI-powered explanations for everyone.',
