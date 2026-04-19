@@ -497,14 +497,82 @@ a:focus-visible {
 /* Responsive Adjustments */
 @media (max-width: 767px) {
   .notebook-paper {
-    padding-left: 50px;
+    padding-left: 40px;
+    background-size: auto, auto, 40px auto;
   }
   
   .level-card {
-    padding: 1rem;
+    padding: 0.875rem;
   }
   
   .page-transition {
     animation-duration: 0.3s;
+  }
+  
+  /* Improve touch targets on mobile */
+  button, a, input, textarea {
+    min-height: 44px;
+  }
+  
+  /* Better text sizing on mobile */
+  body {
+    font-size: 16px; /* Prevents iOS zoom on input focus */
+  }
+  
+  /* Reduce animations on mobile for performance */
+  .chalk-dust {
+    display: none;
+  }
+}
+
+/* Extra small devices (phones in portrait) */
+@media (max-width: 374px) {
+  .notebook-paper {
+    padding-left: 30px;
+    background-size: auto, auto, 30px auto;
+  }
+  
+  .level-card {
+    padding: 0.75rem;
+  }
+  
+  h1 {
+    font-size: 1.25rem !important;
+  }
+  
+  h2 {
+    font-size: 1.125rem !important;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .notebook-paper {
+    padding-left: 60px;
+  }
+}
+
+/* Landscape mobile adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+  .page-transition {
+    animation: none;
+  }
+  
+  header {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+}
+
+/* Safe area insets for notched devices (iPhone X+) */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+  
+  header {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
   }
 }

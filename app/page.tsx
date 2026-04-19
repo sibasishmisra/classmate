@@ -55,23 +55,23 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-paper-white" role="main">
       {/* Header */}
-      <header className="bg-chalkboard-black text-chalk-white py-6 px-4 shadow-lg" role="banner">
+      <header className="bg-chalkboard-black text-chalk-white py-4 sm:py-6 px-3 sm:px-4 shadow-lg sticky top-0 z-50" role="banner">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <h1 className="text-3xl md:text-4xl font-bold font-ui text-center md:text-left">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-ui text-center md:text-left truncate">
                 ClassMate.info
               </h1>
-              <p className="text-center md:text-left text-chalk-gray mt-2 font-body text-sm md:text-base">
-                AI-powered learning companion for curious minds
+              <p className="text-center md:text-left text-chalk-gray mt-1 sm:mt-2 font-body text-xs sm:text-sm md:text-base line-clamp-1">
+                AI-powered learning companion
               </p>
             </div>
             <Link
               href="/faq"
-              className="flex items-center gap-2 px-3 md:px-4 py-2 bg-accent-blue text-white rounded-lg font-ui font-medium hover:bg-opacity-90 transition-colors text-sm md:text-base"
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-2 bg-accent-blue text-white rounded-lg font-ui font-medium hover:bg-opacity-90 transition-colors text-xs sm:text-sm md:text-base whitespace-nowrap flex-shrink-0"
               aria-label="View help and FAQ"
             >
-              <span aria-hidden="true">❓</span>
+              <span aria-hidden="true" className="text-base sm:text-lg">❓</span>
               <span className="hidden sm:inline">Help & FAQ</span>
               <span className="sm:hidden">Help</span>
             </Link>
@@ -79,14 +79,14 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           {/* Main Content Area */}
           <div className="lg:col-span-3">
             {/* Step 1: Level Selection */}
             {!level && (
-              <section className="mb-8 page-transition" aria-labelledby="level-selection-heading">
-                <h2 id="level-selection-heading" className="text-2xl font-semibold text-ink-black mb-6 text-center font-ui">
+              <section className="mb-6 sm:mb-8 page-transition" aria-labelledby="level-selection-heading">
+                <h2 id="level-selection-heading" className="text-xl sm:text-2xl font-semibold text-ink-black mb-4 sm:mb-6 text-center font-ui px-2">
                   Choose Your Learning Level
                 </h2>
                 <LevelSelector
@@ -98,14 +98,14 @@ export default function Home() {
 
             {/* Step 2: Topic Input */}
             {level && !showExplanation && (
-              <section className="mb-8 page-transition" aria-labelledby="topic-input-heading">
-                <div className="mb-6 text-center">
-                  <p className="text-sm text-chalk-gray font-ui">
+              <section className="mb-6 sm:mb-8 page-transition" aria-labelledby="topic-input-heading">
+                <div className="mb-4 sm:mb-6 text-center px-2">
+                  <p className="text-xs sm:text-sm text-chalk-gray font-ui">
                     Learning Level: <span className="font-semibold text-ink-black">Age {level + 8}</span>
                     {' • '}
                     <button
                       onClick={() => setLevel(null as any)}
-                      className="text-accent-blue hover:underline focus:outline-none focus:ring-2 focus:ring-accent-blue focus:ring-offset-2 rounded px-1"
+                      className="text-accent-blue hover:underline focus:outline-none focus:ring-2 focus:ring-accent-blue focus:ring-offset-2 rounded px-1 text-xs sm:text-sm"
                       aria-label="Change learning level"
                       type="button"
                     >
@@ -113,7 +113,7 @@ export default function Home() {
                     </button>
                   </p>
                 </div>
-                <h2 id="topic-input-heading" className="text-2xl font-semibold text-ink-black mb-6 text-center font-ui">
+                <h2 id="topic-input-heading" className="text-xl sm:text-2xl font-semibold text-ink-black mb-4 sm:mb-6 text-center font-ui px-2">
                   What would you like to learn about?
                 </h2>
                 <TopicInput
@@ -125,18 +125,18 @@ export default function Home() {
 
             {/* Step 3: Explanation Display */}
             {level && showExplanation && currentTopic && !error && (
-              <section className="mb-8" aria-labelledby="explanation-heading" aria-live="polite">
-                <div className="mb-6 flex justify-between items-center">
-                  <p className="text-sm text-chalk-gray font-ui">
+              <section className="mb-6 sm:mb-8" aria-labelledby="explanation-heading" aria-live="polite">
+                <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 px-2">
+                  <p className="text-xs sm:text-sm text-chalk-gray font-ui">
                     Learning Level: <span className="font-semibold text-ink-black">Age {level + 8}</span>
                   </p>
                   <button
                     onClick={handleNewTopic}
-                    className="text-sm font-semibold text-accent-blue hover:underline font-ui focus:outline-none focus:ring-2 focus:ring-accent-blue focus:ring-offset-2 rounded px-2 py-1"
+                    className="text-xs sm:text-sm font-semibold text-accent-blue hover:underline font-ui focus:outline-none focus:ring-2 focus:ring-accent-blue focus:ring-offset-2 rounded px-2 py-1 whitespace-nowrap"
                     aria-label="Start a new topic"
                     type="button"
                   >
-                    Start New Topic
+                    ✨ Start New Topic
                   </button>
                 </div>
 
@@ -150,7 +150,7 @@ export default function Home() {
 
                 {/* Follow-Up Questions */}
                 {currentTopic.followUpQuestions && currentTopic.followUpQuestions.length === 2 && (
-                  <div className="mt-8">
+                  <div className="mt-6 sm:mt-8">
                     <Suspense fallback={<LoadingSpinner size="md" variant="chalk" />}>
                       <FollowUpQuestions
                         questions={currentTopic.followUpQuestions}
@@ -165,7 +165,7 @@ export default function Home() {
 
             {/* Error Display */}
             {error && (
-              <section className="mb-8">
+              <section className="mb-6 sm:mb-8 px-2">
                 <FriendlyErrorDisplay
                   title="Oops! Something went wrong"
                   message={error}
@@ -182,7 +182,7 @@ export default function Home() {
           </div>
 
           {/* Sidebar: Session History & Settings */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-4 sm:space-y-6">
             <Suspense fallback={<LoadingSpinner size="sm" variant="paper" />}>
               <SessionHistory
                 topics={history}

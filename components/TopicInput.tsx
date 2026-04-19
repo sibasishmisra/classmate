@@ -50,8 +50,8 @@ export default function TopicInput({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
-      <div className="space-y-4">
+    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto px-2 sm:px-0">
+      <div className="space-y-3 sm:space-y-4">
         {/* Notebook Textarea */}
         <NotebookTextarea
           value={topic}
@@ -65,7 +65,7 @@ export default function TopicInput({
         {/* Inline validation error */}
         {error && (
           <div 
-            className="text-error-red text-sm font-ui px-4 py-2 bg-red-50 border-l-4 border-error-red rounded"
+            className="text-error-red text-xs sm:text-sm font-ui px-3 sm:px-4 py-2 bg-red-50 border-l-4 border-error-red rounded"
             role="alert"
             aria-live="polite"
           >
@@ -78,16 +78,16 @@ export default function TopicInput({
           <ChalkDustButton
             type="submit"
             disabled={!isValid || isLoading}
-            className="submit-button min-h-[44px] min-w-[44px] touch-manipulation"
+            className="submit-button min-h-[44px] min-w-[44px] touch-manipulation text-sm sm:text-base px-4 sm:px-6"
             aria-label={isLoading ? 'Submitting topic...' : 'Submit topic'}
           >
             {isLoading ? (
               <span className="flex items-center gap-2">
-                <span className="chalk-spinner inline-block w-5 h-5 border-2 border-transparent border-t-current rounded-full animate-spin" aria-hidden="true" />
-                <span>Learning...</span>
+                <span className="chalk-spinner inline-block w-4 h-4 sm:w-5 sm:h-5 border-2 border-transparent border-t-current rounded-full animate-spin" aria-hidden="true" />
+                <span className="text-sm sm:text-base">Learning...</span>
               </span>
             ) : (
-              'Ask ClassMate'
+              <span className="text-sm sm:text-base">Ask ClassMate</span>
             )}
           </ChalkDustButton>
         </div>

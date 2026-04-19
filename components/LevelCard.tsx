@@ -77,11 +77,11 @@ export default function LevelCard({ level, ageRange, selected = false, onClick }
       />
 
       {/* Card content */}
-      <div className="relative z-10 flex flex-col items-center justify-center gap-2">
-        <div className="chalk-text text-2xl font-bold">
+      <div className="relative z-10 flex flex-col items-center justify-center gap-1 sm:gap-2 py-2 sm:py-0">
+        <div className="chalk-text text-xl sm:text-2xl font-bold">
           Level {level}
         </div>
-        <div className="chalk-text text-sm opacity-90">
+        <div className="chalk-text text-xs sm:text-sm opacity-90">
           Age {ageRange}
         </div>
       </div>

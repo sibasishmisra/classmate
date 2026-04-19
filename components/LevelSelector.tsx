@@ -37,8 +37,8 @@ export default function LevelSelector({ onLevelSelect, selectedLevel }: LevelSel
   };
 
   return (
-    <div className="level-selector w-full max-w-4xl mx-auto px-4" role="group" aria-label="Learning level selection">
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+    <div className="level-selector w-full max-w-4xl mx-auto px-2 sm:px-4" role="group" aria-label="Learning level selection">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
         {LEVEL_DATA.map(({ level, ageRange }) => (
           <LevelCard
             key={level}
