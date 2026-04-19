@@ -70,8 +70,11 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
-  const submitTopic = useCallback(async (topic: string) => {
-    if (!session.level) {
+  const submitTopic = useCallback(async (topic: string, level?: LearningLevel) => {
+    // Use provided level or session level (for fixed level mode)
+    const targetLevel = level || session.level;
+    
+    if (!targetLevel) {
       setError('Please select a learning level first');
       return;
     }
@@ -85,7 +88,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           topic,
-          level: session.level
+          level: targetLevel
         })
       });
 
@@ -106,7 +109,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         explanation: data.explanation,
         followUpQuestions: data.followUpQuestions,
         timestamp: new Date(),
-        level: session.level
+        level: targetLevel
       };
 
       // Update session with new topic
@@ -117,6 +120,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         
         return {
           ...prev,
+          level: targetLevel, // Update level in session
           topics: limitedTopics
         };
       });

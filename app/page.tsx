@@ -2,26 +2,26 @@
 
 import { useState, lazy, Suspense } from 'react';
 import Link from 'next/link';
-import LevelSelector from '@/components/LevelSelector';
 import TopicInput from '@/components/TopicInput';
 import ExplanationDisplay from '@/components/ExplanationDisplay';
 import FriendlyErrorDisplay from '@/components/FriendlyErrorDisplay';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { useSession } from '@/contexts/SessionContext';
 import { soundManager, SOUND_IDS } from '@/lib/sound-manager';
-import type { LearningLevel, TopicEntry } from '@/types';
+import type { TopicEntry } from '@/types';
 
 // Lazy load heavy components for better initial load performance
 const FollowUpQuestions = lazy(() => import('@/components/FollowUpQuestions'));
 const SessionHistory = lazy(() => import('@/components/SessionHistory'));
 const SettingsPanel = lazy(() => import('@/components/SettingsPanel'));
 
+// Fixed level: 5th grade (age 10-11)
+const FIXED_LEVEL = 3; // Level 3 = Age 11 (5th grade)
+
 export default function Home() {
   const {
-    level,
     currentTopic,
     history,
-    setLevel,
     submitTopic,
     isLoading,
     error
@@ -29,12 +29,8 @@ export default function Home() {
 
   const [showExplanation, setShowExplanation] = useState(false);
 
-  const handleLevelSelect = (selectedLevel: LearningLevel) => {
-    setLevel(selectedLevel);
-  };
-
   const handleTopicSubmit = async (topic: string) => {
-    await submitTopic(topic);
+    await submitTopic(topic, FIXED_LEVEL);
     setShowExplanation(true);
     // Play page turn sound when showing explanation
     soundManager.play(SOUND_IDS.PAGE_TURN);
@@ -59,11 +55,11 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between gap-2 sm:gap-4">
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-ui text-center md:text-left truncate">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold font-ui text-center md:text-left">
                 ClassMate.info
               </h1>
-              <p className="text-center md:text-left text-chalk-gray mt-1 sm:mt-2 font-body text-xs sm:text-sm md:text-base line-clamp-1">
-                AI-powered learning companion
+              <p className="text-center md:text-left text-chalk-white mt-1 sm:mt-2 font-body text-xs sm:text-sm md:text-base opacity-90">
+                Explain it like I'm in 5th grade 🎓
               </p>
             </div>
             <Link
@@ -83,39 +79,18 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           {/* Main Content Area */}
           <div className="lg:col-span-3">
-            {/* Step 1: Level Selection */}
-            {!level && (
-              <section className="mb-6 sm:mb-8 page-transition" aria-labelledby="level-selection-heading">
-                <h2 id="level-selection-heading" className="text-xl sm:text-2xl font-semibold text-ink-black mb-4 sm:mb-6 text-center font-ui px-2">
-                  Choose Your Learning Level
-                </h2>
-                <LevelSelector
-                  onLevelSelect={handleLevelSelect}
-                  selectedLevel={level || undefined}
-                />
-              </section>
-            )}
-
-            {/* Step 2: Topic Input */}
-            {level && !showExplanation && (
-              <section className="mb-6 sm:mb-8 page-transition" aria-labelledby="topic-input-heading">
-                <div className="mb-4 sm:mb-6 text-center px-2">
-                  <p className="text-xs sm:text-sm text-chalk-gray font-ui">
-                    Learning Level: <span className="font-semibold text-ink-black">Age {level + 8}</span>
-                    {' • '}
-                    <button
-                      onClick={() => setLevel(null as any)}
-                      className="text-accent-blue hover:underline focus:outline-none focus:ring-2 focus:ring-accent-blue focus:ring-offset-2 rounded px-1 text-xs sm:text-sm"
-                      aria-label="Change learning level"
-                      type="button"
-                    >
-                      Change
-                    </button>
+            {/* Topic Input - Always visible when not showing explanation */}
+            {!showExplanation && (
+              <section className="mb-6 sm:mb-8" aria-labelledby="topic-input-heading">
+                <div className="text-center mb-6 sm:mb-8 px-2">
+                  <h2 id="topic-input-heading" className="text-2xl sm:text-3xl md:text-4xl font-bold text-ink-black mb-3 sm:mb-4 font-ui">
+                    What would you like to learn?
+                  </h2>
+                  <p className="text-sm sm:text-base md:text-lg text-chalk-gray font-body max-w-2xl mx-auto">
+                    Ask me anything! I'll explain it in a way that's easy to understand, 
+                    just like you're in 5th grade. 📚
                   </p>
                 </div>
-                <h2 id="topic-input-heading" className="text-xl sm:text-2xl font-semibold text-ink-black mb-4 sm:mb-6 text-center font-ui px-2">
-                  What would you like to learn about?
-                </h2>
                 <TopicInput
                   onSubmit={handleTopicSubmit}
                   isLoading={isLoading}
@@ -123,20 +98,23 @@ export default function Home() {
               </section>
             )}
 
-            {/* Step 3: Explanation Display */}
-            {level && showExplanation && currentTopic && !error && (
+            {/* Explanation Display */}
+            {showExplanation && currentTopic && !error && (
               <section className="mb-6 sm:mb-8" aria-labelledby="explanation-heading" aria-live="polite">
                 <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 px-2">
-                  <p className="text-xs sm:text-sm text-chalk-gray font-ui">
-                    Learning Level: <span className="font-semibold text-ink-black">Age {level + 8}</span>
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl" aria-hidden="true">🎓</span>
+                    <p className="text-xs sm:text-sm text-chalk-gray font-ui">
+                      Explained like you're in <span className="font-semibold text-ink-black">5th grade</span>
+                    </p>
+                  </div>
                   <button
                     onClick={handleNewTopic}
                     className="text-xs sm:text-sm font-semibold text-accent-blue hover:underline font-ui focus:outline-none focus:ring-2 focus:ring-accent-blue focus:ring-offset-2 rounded px-2 py-1 whitespace-nowrap"
-                    aria-label="Start a new topic"
+                    aria-label="Ask another question"
                     type="button"
                   >
-                    ✨ Start New Topic
+                    ✨ Ask Another Question
                   </button>
                 </div>
 

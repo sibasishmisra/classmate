@@ -1,10 +1,10 @@
 # ClassMate.info
 
-AI-powered educational explanations with a nostalgic school-themed interface. Built for students ages 9-14 worldwide.
+AI-powered educational explanations explained like you're in 5th grade. Built for students and curious learners worldwide.
 
 ## Features
 
-- 🎓 Age-appropriate explanations for 6 learning levels (ages 9-14)
+- 🎓 Explanations at 5th grade level (perfect for 10-11 year olds and anyone who wants simple explanations)
 - 🤖 Powered by Anthropic Claude API
 - 📚 Nostalgic school-themed design (chalkboard, notebook paper)
 - 🌍 Globally accessible with culturally neutral content
