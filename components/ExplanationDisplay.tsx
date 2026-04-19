@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import ChalkboardSection from './ChalkboardSection';
 import TypewriterText from './TypewriterText';
 import LoadingSpinner from './LoadingSpinner';
@@ -48,6 +49,26 @@ export default function ExplanationDisplay({
   error = null,
   onQuestionClick
 }: ExplanationDisplayProps) {
+  const [copied, setCopied] = useState(false);
+  const [isTypingDone, setIsTypingDone] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(explanation);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const el = document.createElement('textarea');
+      el.value = explanation;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
   // Handle loading state
   if (isLoading) {
     return (
@@ -100,6 +121,7 @@ export default function ExplanationDisplay({
   // Handle typewriter completion - play success sound
   const handleTypewriterComplete = () => {
     soundManager.play(SOUND_IDS.SUCCESS_CHIME);
+    setIsTypingDone(true);
   };
 
   return (
@@ -116,13 +138,47 @@ export default function ExplanationDisplay({
 
       {/* Explanation Content */}
       <ChalkboardSection className="p-8 rounded-lg mb-8">
-        <div className="max-w-3xl mx-auto">
-          <TypewriterText
-            text={explanation}
-            speed={30}
-            className="text-lg leading-relaxed"
-            onComplete={handleTypewriterComplete}
-          />
+        {/* Copy button — top right, appears after typing finishes */}
+        <div className="relative">
+          {isTypingDone && (
+            <button
+              onClick={handleCopy}
+              className="absolute -top-4 right-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-ui font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-chalk-white focus:ring-offset-1 focus:ring-offset-chalkboard-black"
+              style={{
+                background: copied ? 'rgba(16,185,129,0.25)' : 'rgba(245,245,220,0.12)',
+                color: copied ? '#6ee7b7' : '#f5f5dc',
+                border: copied ? '1px solid rgba(16,185,129,0.5)' : '1px solid rgba(245,245,220,0.25)',
+              }}
+              aria-label="Copy explanation to clipboard"
+              title="Copy to clipboard"
+            >
+              {copied ? (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                    <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                  </svg>
+                  Copy
+                </>
+              )}
+            </button>
+          )}
+
+          <div className="max-w-3xl mx-auto">
+            <TypewriterText
+              text={explanation}
+              speed={30}
+              className="text-lg leading-relaxed"
+              onComplete={handleTypewriterComplete}
+            />
+          </div>
         </div>
       </ChalkboardSection>
 
