@@ -273,6 +273,26 @@ Only return the JSON array, nothing else.`;
     });
     console.log('API Success:', logEntry);
 
+    // Log to persistent storage for /logs page
+    try {
+      await fetch(`${request.nextUrl.origin}/api/logs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: sanitizedTopic,
+          level,
+          explanation,
+          followUpQuestions: followUpQuestions.map(fq => ({
+            question: fq.question,
+            answer: undefined
+          }))
+        })
+      });
+    } catch (logError) {
+      // Don't fail the request if logging fails
+      console.error('Failed to log session:', logError);
+    }
+
     return NextResponse.json(response);
 
   } catch (error) {
