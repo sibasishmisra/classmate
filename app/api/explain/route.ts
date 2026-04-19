@@ -275,22 +275,22 @@ Only return the JSON array, nothing else.`;
 
     // Log to persistent storage for /logs page
     try {
-      await fetch(`${request.nextUrl.origin}/api/logs`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          topic: sanitizedTopic,
-          level,
-          explanation,
-          followUpQuestions: followUpQuestions.map(fq => ({
-            question: fq.question,
-            answer: undefined
-          }))
-        })
+      // Import the logging function directly
+      const { logSession } = await import('@/lib/session-logger');
+      await logSession({
+        topic: sanitizedTopic,
+        level,
+        explanation,
+        followUpQuestions: followUpQuestions.map(fq => ({
+          question: fq.question,
+          answer: undefined
+        })),
+        request
       });
+      console.log('[API] Session logged successfully');
     } catch (logError) {
       // Don't fail the request if logging fails
-      console.error('Failed to log session:', logError);
+      console.error('[API] Failed to log session:', logError);
     }
 
     return NextResponse.json(response);
