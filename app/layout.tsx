@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { SessionProvider, SettingsProvider } from '@/contexts';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import SoundInitializer from '@/components/SoundInitializer';
 
 export const metadata: Metadata = {
   title: 'ClassMate.info - Learn Anything, Simply Explained',
@@ -34,6 +35,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <SettingsProvider>
             <SessionProvider>
+              <SoundInitializer />
               {children}
             </SessionProvider>
           </SettingsProvider>

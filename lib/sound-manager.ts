@@ -56,24 +56,32 @@ class SoundManager {
   preloadSounds(): void {
     if (this.preloaded || typeof window === 'undefined') return;
 
+    console.log('[SoundManager] Starting to preload sounds...');
+
     sounds.forEach(sound => {
       try {
         const audio = new Audio(sound.src);
         audio.volume = sound.volume;
         audio.preload = 'auto';
         
+        // Handle loading success
+        audio.addEventListener('canplaythrough', () => {
+          console.log(`[SoundManager] ✓ Loaded: ${sound.id}`);
+        });
+        
         // Handle loading errors gracefully
-        audio.addEventListener('error', () => {
-          console.warn(`Failed to load sound: ${sound.id}`);
+        audio.addEventListener('error', (e) => {
+          console.error(`[SoundManager] ✗ Failed to load sound: ${sound.id}`, e);
         });
 
         this.sounds.set(sound.id, audio);
       } catch (error) {
-        console.warn(`Error preloading sound ${sound.id}:`, error);
+        console.error(`[SoundManager] Error preloading sound ${sound.id}:`, error);
       }
     });
 
     this.preloaded = true;
+    console.log(`[SoundManager] Preloaded ${this.sounds.size} sounds`);
   }
 
   /**
@@ -81,11 +89,14 @@ class SoundManager {
    * Handles autoplay restrictions gracefully
    */
   play(soundId: string): void {
-    if (!this.enabled) return;
+    if (!this.enabled) {
+      console.debug(`[SoundManager] Sound disabled, not playing: ${soundId}`);
+      return;
+    }
 
     const sound = this.sounds.get(soundId);
     if (!sound) {
-      console.warn(`Sound not found: ${soundId}`);
+      console.warn(`[SoundManager] Sound not found: ${soundId}`);
       return;
     }
 
@@ -93,18 +104,23 @@ class SoundManager {
       // Reset to beginning if already playing
       sound.currentTime = 0;
       
+      console.log(`[SoundManager] Playing: ${soundId}`);
+      
       // Play and handle autoplay restrictions
       const playPromise = sound.play();
       
       if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          // Autoplay was prevented
-          // This is expected on first interaction
-          console.debug('Sound playback prevented:', error);
-        });
+        playPromise
+          .then(() => {
+            console.log(`[SoundManager] ✓ Successfully played: ${soundId}`);
+          })
+          .catch(error => {
+            // Autoplay was prevented
+            console.warn(`[SoundManager] Playback prevented for ${soundId}:`, error.message);
+          });
       }
     } catch (error) {
-      console.warn(`Error playing sound ${soundId}:`, error);
+      console.error(`[SoundManager] Error playing sound ${soundId}:`, error);
     }
   }
 
