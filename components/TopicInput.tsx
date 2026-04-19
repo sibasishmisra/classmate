@@ -83,7 +83,7 @@ export default function TopicInput({
         )}
 
         {/* Submit button with vintage school styling */}
-        <div className="flex justify-end px-2 sm:px-0">
+        <div className="flex justify-center px-2 sm:px-0">
           <ChalkDustButton
             type="submit"
             disabled={!isValid || isLoading}

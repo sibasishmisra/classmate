@@ -75,8 +75,20 @@ interface ExampleQuestionsFooterProps {
 
 export default function ExampleQuestionsFooter({ onQuestionClick }: ExampleQuestionsFooterProps) {
   const handleQuestionClick = (question: string) => {
-    if (onQuestionClick) {
-      onQuestionClick(question);
+    // Use requestIdleCallback for non-critical updates
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => {
+        if (onQuestionClick) {
+          onQuestionClick(question);
+        }
+      });
+    } else {
+      // Fallback for browsers without requestIdleCallback
+      setTimeout(() => {
+        if (onQuestionClick) {
+          onQuestionClick(question);
+        }
+      }, 0);
     }
   };
 

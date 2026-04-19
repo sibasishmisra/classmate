@@ -70,15 +70,27 @@ export default function LogsPage() {
       return;
     }
     
-    try {
-      const response = await fetch('/api/logs', { method: 'DELETE' });
-      if (response.ok) {
-        setLogs([]);
-        alert('All logs cleared successfully.');
+    // Use requestIdleCallback to avoid blocking UI
+    const performClear = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/logs', { method: 'DELETE' });
+        if (response.ok) {
+          setLogs([]);
+          alert('All logs cleared successfully.');
+        }
+      } catch (err) {
+        console.error('Failed to clear logs:', err);
+        alert('Failed to clear logs.');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error('Failed to clear logs:', err);
-      alert('Failed to clear logs.');
+    };
+    
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => performClear());
+    } else {
+      setTimeout(() => performClear(), 0);
     }
   };
 
