@@ -1,52 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logSession, readLogs } from '@/lib/session-logger';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('[TEST] Starting test log...');
-    
-    // Import the logging function
-    const { logSession } = await import('@/lib/session-logger');
-    
-    // Create a test log
+    console.log('[TEST] Creating test log entry...');
+
     await logSession({
-      topic: 'Test Question - Why is the sky blue?',
+      topic: 'Test: Why is the sky blue?',
       level: 3,
-      explanation: 'This is a test explanation to verify logging is working correctly.',
+      explanation: 'Test explanation to verify logging is working in this environment.',
       followUpQuestions: [
-        {
-          question: 'Test follow-up question 1?',
-          answer: undefined
-        },
-        {
-          question: 'Test follow-up question 2?',
-          answer: undefined
-        }
+        { question: 'Why does the sky turn red at sunset?' },
+        { question: 'What would the sky look like on Mars?' },
       ],
-      request
+      request,
     });
-    
-    console.log('[TEST] Test log created successfully');
-    
-    // Read the logs to verify
-    const { promises: fs } = await import('fs');
-    const path = await import('path');
-    const logsFile = path.join(process.cwd(), 'data', 'logs.json');
-    
-    const data = await fs.readFile(logsFile, 'utf-8');
-    const logs = JSON.parse(data);
-    
+
+    const logs = await readLogs();
+
     return NextResponse.json({
       success: true,
-      message: 'Test log created successfully',
-      logsCount: logs.length,
-      lastLog: logs[0]
+      message: 'Test log created',
+      totalLogs: logs.length,
+      latestLog: logs[0],
+      storageBackend: process.env.UPSTASH_REDIS_REST_URL ? 'redis' : 'file',
     });
   } catch (error: any) {
     console.error('[TEST] Error:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message,
-      stack: error.stack
-    }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: error.message, stack: error.stack },
+      { status: 500 }
+    );
   }
 }

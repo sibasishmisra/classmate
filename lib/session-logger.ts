@@ -1,12 +1,13 @@
 /**
  * Session Logger - Logs user sessions to persistent storage
+ * Uses Upstash Redis in production, local file in development
  */
 
 import { NextRequest } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 
-interface LogEntry {
+export interface LogEntry {
   id: string;
   timestamp: string;
   ip: string;
@@ -20,20 +21,64 @@ interface LogEntry {
   }>;
 }
 
-interface LogSessionParams {
-  topic: string;
-  level: number;
-  explanation: string;
-  followUpQuestions?: Array<{
-    question: string;
-    answer?: string;
-  }>;
-  request: NextRequest;
+// ─── Storage Backend ──────────────────────────────────────────────────────────
+
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
+const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const LOGS_KEY = 'classmate:logs';
+const MAX_LOGS = 1000;
+
+// Check if Redis is configured
+function isRedisConfigured(): boolean {
+  return !!(REDIS_URL && REDIS_TOKEN);
 }
+
+// ─── Redis Storage ────────────────────────────────────────────────────────────
+
+async function redisCommand(command: string[]): Promise<any> {
+  const response = await fetch(`${REDIS_URL}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${REDIS_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(command),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Redis error: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.result;
+}
+
+async function redisReadLogs(): Promise<LogEntry[]> {
+  try {
+    // LRANGE key 0 -1 returns all items
+    const items: string[] = await redisCommand(['LRANGE', LOGS_KEY, '0', '-1']);
+    if (!items || items.length === 0) return [];
+    return items.map((item) => JSON.parse(item));
+  } catch (error) {
+    console.error('[Logger] Redis read error:', error);
+    return [];
+  }
+}
+
+async function redisWriteLog(entry: LogEntry): Promise<void> {
+  // LPUSH prepends (newest first), then trim to MAX_LOGS
+  await redisCommand(['LPUSH', LOGS_KEY, JSON.stringify(entry)]);
+  await redisCommand(['LTRIM', LOGS_KEY, '0', String(MAX_LOGS - 1)]);
+}
+
+async function redisClearLogs(): Promise<void> {
+  await redisCommand(['DEL', LOGS_KEY]);
+}
+
+// ─── File Storage (Development fallback) ─────────────────────────────────────
 
 const LOGS_FILE = path.join(process.cwd(), 'data', 'logs.json');
 
-// Ensure data directory exists
 async function ensureDataDir() {
   const dataDir = path.join(process.cwd(), 'data');
   try {
@@ -43,146 +88,131 @@ async function ensureDataDir() {
   }
 }
 
-// Read logs from file
-async function readLogs(): Promise<LogEntry[]> {
+async function fileReadLogs(): Promise<LogEntry[]> {
   try {
     await ensureDataDir();
     const data = await fs.readFile(LOGS_FILE, 'utf-8');
     return JSON.parse(data);
-  } catch (error) {
-    // File doesn't exist yet, return empty array
+  } catch {
     return [];
   }
 }
 
-// Write logs to file
-async function writeLogs(logs: LogEntry[]): Promise<void> {
+async function fileWriteLog(entry: LogEntry): Promise<void> {
   await ensureDataDir();
-  await fs.writeFile(LOGS_FILE, JSON.stringify(logs, null, 2), 'utf-8');
+  const logs = await fileReadLogs();
+  logs.unshift(entry);
+  const trimmed = logs.slice(0, MAX_LOGS);
+  await fs.writeFile(LOGS_FILE, JSON.stringify(trimmed, null, 2), 'utf-8');
 }
 
-// Get client IP address
+async function fileClearLogs(): Promise<void> {
+  await ensureDataDir();
+  await fs.writeFile(LOGS_FILE, '[]', 'utf-8');
+}
+
+// ─── Public API ───────────────────────────────────────────────────────────────
+
+export async function readLogs(): Promise<LogEntry[]> {
+  if (isRedisConfigured()) {
+    console.log('[Logger] Using Redis storage');
+    return redisReadLogs();
+  }
+  console.log('[Logger] Using file storage (dev)');
+  return fileReadLogs();
+}
+
+export async function clearLogs(): Promise<void> {
+  if (isRedisConfigured()) {
+    return redisClearLogs();
+  }
+  return fileClearLogs();
+}
+
+// ─── IP & Location ────────────────────────────────────────────────────────────
+
 function getClientIP(request: NextRequest): string {
-  // Try various headers that might contain the real IP
   const forwarded = request.headers.get('x-forwarded-for');
-  if (forwarded) {
-    return forwarded.split(',')[0].trim();
-  }
-  
+  if (forwarded) return forwarded.split(',')[0].trim();
+
   const realIP = request.headers.get('x-real-ip');
-  if (realIP) {
-    return realIP;
-  }
-  
-  const cfConnectingIP = request.headers.get('cf-connecting-ip');
-  if (cfConnectingIP) {
-    return cfConnectingIP;
-  }
-  
+  if (realIP) return realIP;
+
+  const cfIP = request.headers.get('cf-connecting-ip');
+  if (cfIP) return cfIP;
+
   return 'unknown';
 }
 
-// Get approximate location from IP (using a free service)
 async function getLocationFromIP(ip: string): Promise<string | undefined> {
-  if (ip === 'unknown' || ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip === '::1') {
-    return 'Local';
-  }
-  
+  const isLocal =
+    ip === 'unknown' ||
+    ip === '127.0.0.1' ||
+    ip === '::1' ||
+    ip.startsWith('192.168.') ||
+    ip.startsWith('10.') ||
+    ip.startsWith('172.');
+
+  if (isLocal) return 'Local';
+
   try {
-    // Using ipapi.co free tier (1000 requests/day)
     const response = await fetch(`https://ipapi.co/${ip}/json/`, {
       headers: { 'User-Agent': 'ClassMate.info' },
-      signal: AbortSignal.timeout(5000) // 5 second timeout
+      signal: AbortSignal.timeout(4000),
     });
-    
+
     if (response.ok) {
       const data = await response.json();
-      if (data.city && data.country_name) {
-        return `${data.city}, ${data.country_name}`;
-      }
-      if (data.country_name) {
-        return data.country_name;
-      }
+      if (data.city && data.country_name) return `${data.city}, ${data.country_name}`;
+      if (data.country_name) return data.country_name;
     }
-  } catch (error) {
-    console.error('Failed to get location:', error);
+  } catch {
+    // silently fail
   }
-  
+
   return undefined;
 }
 
-/**
- * Log a user session to persistent storage
- */
-export async function logSession(params: LogSessionParams): Promise<void> {
-  const { topic, level, explanation, followUpQuestions, request } = params;
-  
-  try {
-    const ip = getClientIP(request);
-    console.log('[Logger] Detected IP:', ip);
-    
-    const location = await getLocationFromIP(ip);
-    console.log('[Logger] Detected location:', location);
-    
-    const newLog: LogEntry = {
-      id: crypto.randomUUID(),
-      timestamp: new Date().toISOString(),
-      ip,
-      location,
-      topic,
-      level,
-      explanation,
-      followUpQuestions: followUpQuestions || []
-    };
-    
-    console.log('[Logger] Creating log entry:', {
-      id: newLog.id,
-      topic: newLog.topic,
-      ip: newLog.ip,
-      location: newLog.location
-    });
-    
-    const logs = await readLogs();
-    console.log('[Logger] Current logs count:', logs.length);
-    
-    logs.unshift(newLog); // Add to beginning (newest first)
-    
-    // Keep only last 1000 logs to prevent file from growing too large
-    const trimmedLogs = logs.slice(0, 1000);
-    
-    await writeLogs(trimmedLogs);
-    console.log('[Logger] Log saved successfully. New count:', trimmedLogs.length);
-  } catch (error) {
-    console.error('[Logger] Error logging session:', error);
-    throw error;
-  }
+// ─── Main Export ──────────────────────────────────────────────────────────────
+
+interface LogSessionParams {
+  topic: string;
+  level: number;
+  explanation: string;
+  followUpQuestions?: Array<{ question: string; answer?: string }>;
+  request: NextRequest;
 }
 
-/**
- * Update a log entry with follow-up answer
- */
-export async function updateLogWithAnswer(
-  logId: string,
-  questionIndex: number,
-  answer: string
-): Promise<void> {
-  try {
-    const logs = await readLogs();
-    const logIndex = logs.findIndex(log => log.id === logId);
-    
-    if (logIndex === -1) {
-      console.warn('[Logger] Log not found:', logId);
-      return;
-    }
-    
-    const log = logs[logIndex];
-    if (log.followUpQuestions && log.followUpQuestions[questionIndex]) {
-      log.followUpQuestions[questionIndex].answer = answer;
-      await writeLogs(logs);
-      console.log('[Logger] Follow-up answer updated');
-    }
-  } catch (error) {
-    console.error('[Logger] Error updating log with answer:', error);
-    throw error;
+export async function logSession(params: LogSessionParams): Promise<void> {
+  const { topic, level, explanation, followUpQuestions, request } = params;
+
+  const ip = getClientIP(request);
+  const location = await getLocationFromIP(ip);
+
+  const entry: LogEntry = {
+    id: crypto.randomUUID(),
+    timestamp: new Date().toISOString(),
+    ip,
+    location,
+    topic,
+    level,
+    explanation,
+    followUpQuestions: followUpQuestions || [],
+  };
+
+  console.log('[Logger] Saving log:', {
+    id: entry.id,
+    topic: entry.topic,
+    ip: entry.ip,
+    location: entry.location,
+    backend: isRedisConfigured() ? 'redis' : 'file',
+  });
+
+  if (isRedisConfigured()) {
+    await redisWriteLog(entry);
+  } else {
+    await fileWriteLog(entry);
   }
+
+  console.log('[Logger] Log saved successfully');
 }
