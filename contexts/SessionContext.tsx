@@ -21,7 +21,7 @@ interface SessionContextValue {
   currentTopic: TopicEntry | null;
   history: TopicEntry[];
   setLevel: (level: LearningLevel) => void;
-  submitTopic: (topic: string) => Promise<void>;
+  submitTopic: (topic: string, level?: LearningLevel) => Promise<void>;
   answerFollowUp: (questionId: string) => Promise<void>;
   clearSession: () => void;
   isLoading: boolean;
