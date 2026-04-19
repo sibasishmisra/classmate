@@ -1,0 +1,54 @@
+# Docker Compose configuration for ClassMate.info
+# Usage: docker-compose up -d
+
+version: '3.8'
+
+services:
+  classmate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: classmate-info
+    ports:
+      - "3000:3000"
+    environment:
+      # Required: Claude API key
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      
+      # Optional: Application configuration
+      - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-ClassMate.info}
+      - NEXT_PUBLIC_MAX_TOPIC_LENGTH=${NEXT_PUBLIC_MAX_TOPIC_LENGTH:-500}
+      - NEXT_PUBLIC_MAX_HISTORY_ENTRIES=${NEXT_PUBLIC_MAX_HISTORY_ENTRIES:-10}
+      
+      # Optional: Rate limiting
+      - RATE_LIMIT_REQUESTS=${RATE_LIMIT_REQUESTS:-10}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-60000}
+      
+      # Production settings
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - classmate-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  classmate-network:
+    driver: bridge
+
+# Usage instructions:
+# 1. Create .env file with CLAUDE_API_KEY=your-key-here
+# 2. Run: docker-compose up -d
+# 3. Visit: http://localhost:3000
+# 4. Check health: http://localhost:3000/api/health
+# 5. View logs: docker-compose logs -f
+# 6. Stop: docker-compose down
